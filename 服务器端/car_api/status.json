@@ -1,0 +1,39 @@
+{
+    "device_id": "smartcar-p4-01",
+    "last_seen": "2026-06-29 18:58:34",
+    "ip": "192.168.43.62",
+    "wifi_connected": 1,
+    "mode": "MISSION_COMPLETE",
+    "plan_running": 1,
+    "route_progress": 5,
+    "route_task_count": 5,
+    "active_task": "FINISH",
+    "line_seen": 1,
+    "line_error": 4,
+    "t_node_seen": 1,
+    "uptime_ms": 671304,
+    "cloud_push_ok": 1,
+    "cloud_pull_ok": 1,
+    "raw": {
+        "device_id": "smartcar-p4-01",
+        "token": "smartcar_p4_cloud_001",
+        "ip": "192.168.43.62",
+        "wifi_connected": true,
+        "mode": "MISSION_COMPLETE",
+        "plan_running": true,
+        "route_progress": 5,
+        "route_task_count": 5,
+        "active_task": "FINISH",
+        "line_seen": true,
+        "line_error": 4,
+        "t_node_seen": true,
+        "uptime_ms": 671304,
+        "cloud_pull_ok": true,
+        "plan": {
+            "A": false,
+            "B": false,
+            "C": true,
+            "D": false
+        }
+    }
+}

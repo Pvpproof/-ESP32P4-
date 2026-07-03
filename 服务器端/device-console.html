@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>设备控制中心</title>
+  <style>
+    :root {
+      --bg: #f7fbff;
+      --panel: rgba(214, 234, 255, 0.84);
+      --panel-strong: rgba(205, 228, 255, 0.92);
+      --line: rgba(59, 130, 246, 0.12);
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --user: #60a5fa;
+      --assistant: #16a34a;
+      --system: #7c3aed;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warn: #d97706;
+      --blue-1: #dff0ff;
+      --blue-2: #cfe7ff;
+      --blue-3: #b6daff;
+      --shadow: 0 16px 40px rgba(59, 130, 246, 0.10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      background: #ffffff;
+      color: var(--text);
+      padding: 24px;
+    }
+    .wrap { max-width: 1240px; margin: 0 auto; }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      flex-wrap: wrap; margin-bottom: 18px;
+    }
+    .back { color: var(--muted); text-decoration: none; font-size: 14px; }
+    .back:hover { color: var(--text); }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
+      border-radius: 999px; border: 1px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.72); color: var(--text); font-size: 13px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      backdrop-filter: blur(18px);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+    .safety-banner {
+      margin: 0 0 18px;
+      padding: 16px 0;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+      box-shadow: 0 14px 30px rgba(185, 28, 28, 0.20);
+      overflow: hidden;
+    }
+    .safety-marquee {
+      display: flex;
+      width: max-content;
+      min-width: 100%;
+      animation: safety-marquee 42s linear infinite;
+      will-change: transform;
+    }
+    .safety-track {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .safety-slogan {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #facc15;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.12);
+      padding-left: 72px;
+    }
+    .safety-slogan:first-child {
+      padding-left: 36px;
+    }
+    @keyframes safety-marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .layout { display: block; }
+    .panel {
+      background: linear-gradient(135deg, var(--blue-1) 0%, var(--blue-2) 100%);
+      border: 1px solid rgba(255,255,255,0.55);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(22px);
+    }
+    .panel-header { padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .panel-header h1, .panel-header h2, .panel-header h3 { margin: 0 0 8px 0; }
+    .panel-header p, .subtext { margin: 0; color: var(--muted); line-height: 1.7; font-size: 14px; }
+    .main { display: flex; flex-direction: column; min-height: calc(100vh - 40px); overflow: hidden; }
+    .main-header {
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.55);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: linear-gradient(135deg, #d7ebff 0%, #c9e2ff 100%);
+    }
+    .tools { display: flex; gap: 10px; flex-wrap: wrap; }
+    button, textarea, input { font: inherit; }
+    .btn {
+      border: 1px solid rgba(15,23,42,0.08);
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all .15s ease;
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.04);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      border-color: rgba(59,130,246,.22);
+      color: #fff;
+      box-shadow: 0 10px 18px rgba(59, 130, 246, 0.22);
+    }
+    .btn.primary:hover { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); }
+    .btn.danger {
+      background: rgba(220, 38, 38, 0.10);
+      border-color: rgba(220,38,38,.14);
+      color: var(--danger);
+    }
+    .dialog {
+      flex: 1 1 0;
+      min-height: 420px;
+      max-height: 58vh;
+      padding: 20px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: linear-gradient(180deg, rgba(248, 252, 255, 0.92), rgba(235, 246, 255, 0.98));
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .bubble {
+      max-width: min(86%, 780px);
+      padding: 14px 16px;
+      border-radius: 18px;
+      line-height: 1.75;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text);
+    }
+    .bubble.user {
+      align-self: flex-end;
+      background: rgba(191, 219, 254, 0.92);
+      border: 1px solid rgba(96,165,250,.28);
+    }
+    .bubble.assistant {
+      align-self: flex-start;
+      background: rgba(220, 252, 231, 0.88);
+      border: 1px solid rgba(74,222,128,.24);
+    }
+    .bubble.system {
+      align-self: flex-start;
+      background: rgba(237, 233, 254, 0.9);
+      border: 1px solid rgba(167,139,250,.22);
+    }
+    .meta { display: block; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
+    .composer {
+      padding: 16px 20px 20px;
+      border-top: 1px solid rgba(255,255,255,0.55);
+      background: linear-gradient(180deg, rgba(233, 245, 255, 0.92), rgba(220, 237, 255, 0.96));
+    }
+    .input-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
+    @media (max-width: 720px) { .input-row { grid-template-columns: 1fr; } }
+    textarea {
+      width: 100%;
+      min-height: 96px;
+      max-height: 240px;
+      resize: vertical;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,.18);
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      padding: 14px 16px;
+      outline: none;
+      line-height: 1.7;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+    }
+    textarea:focus, input:focus { border-color: rgba(59,130,246,.55); box-shadow: 0 0 0 4px rgba(59,130,246,.12); }
+    .empty { margin: auto; text-align: center; color: var(--muted); max-width: 620px; line-height: 1.8; }
+    .empty strong { color: white; }
+    .car-panel {
+      padding: 18px 20px 20px;
+      background: rgba(3, 10, 20, 0.82);
+    }
+    .car-card {
+      background: linear-gradient(135deg, #e6f3ff 0%, #d7ebff 100%);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.08);
+    }
+    .car-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    @media (max-width: 840px) {
+      .car-grid { grid-template-columns: 1fr; }
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .field label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .field input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.18);
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+    }
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+    .status-pill.online {
+      background: rgba(34,197,94,.24);
+      border-color: rgba(22,163,74,.34);
+      color: #166534;
+    }
+    .status-pill.offline {
+      background: rgba(239,68,68,.22);
+      border-color: rgba(220,38,38,.34);
+      color: #991b1b;
+    }
+    .status-pill.busy {
+      background: rgba(245,158,11,.24);
+      border-color: rgba(217,119,6,.34);
+      color: #92400e;
+    }
+    .plan-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    @media (max-width: 600px) {
+      .plan-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .plan-btn {
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      background: linear-gradient(135deg, #ebf6ff 0%, #dceeff 100%);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 10px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .12s ease, transform .08s ease, border-color .12s ease;
+    }
+    .plan-btn:hover { transform: translateY(-1px); }
+    .plan-btn.active {
+      background: rgba(59,130,246,.28);
+      border-color: rgba(96,165,250,.52);
+    }
+    .plan-summary, .status-text {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-top: 12px;
+    }
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .queue-panel {
+      margin-top: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      background: linear-gradient(135deg, #ebf6ff 0%, #dceeff 100%);
+      overflow: hidden;
+    }
+    .queue-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    }
+    .queue-panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .queue-panel-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .queue-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .queue-btn {
+      border: 1px solid rgba(148,163,184,.16);
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .queue-btn.danger {
+      color: var(--danger);
+      border-color: rgba(220,38,38,.18);
+      background: rgba(255,255,255,0.96);
+    }
+    .queue-empty {
+      padding: 16px 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .queue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 14px 14px;
+    }
+    .queue-item {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid rgba(148,163,184,.14);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+    }
+    .queue-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .queue-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .queue-item-meta {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .queue-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(148,163,184,.16);
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+    }
+    .queue-status-badge.waiting_time,
+    .queue-status-badge.waiting_dependency,
+    .queue-status-badge.waiting_car {
+      background: rgba(245,158,11,.14);
+      color: #92400e;
+      border-color: rgba(217,119,6,.18);
+    }
+    .queue-status-badge.queued,
+    .queue-status-badge.dispatching {
+      background: rgba(59,130,246,.12);
+      color: #1d4ed8;
+      border-color: rgba(59,130,246,.18);
+    }
+    .queue-status-badge.running {
+      background: rgba(34,197,94,.14);
+      color: #166534;
+      border-color: rgba(22,163,74,.18);
+    }
+    .queue-status-badge.done {
+      background: rgba(148,163,184,.14);
+      color: #475569;
+      border-color: rgba(100,116,139,.18);
+    }
+    .queue-status-badge.failed,
+    .queue-status-badge.cancelled {
+      background: rgba(239,68,68,.12);
+      color: #991b1b;
+      border-color: rgba(220,38,38,.18);
+    }
+    .queue-item-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    @media (max-width: 720px) {
+      .queue-item-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    .queue-kv {
+      background: rgba(255,255,255,0.68);
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1px solid rgba(148,163,184,.12);
+    }
+    .queue-kv-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .queue-kv-value {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .queue-item-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .analysis-panel {
+      flex: 1 1 auto;
+      padding: 0 20px 24px;
+      background: transparent;
+      overflow-y: auto;
+    }
+    .analysis-card {
+      background: linear-gradient(135deg, #e6f3ff 0%, #d7ebff 100%);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+      min-height: 100%;
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.08);
+    }
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .modal-shell {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.62);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 999;
+      backdrop-filter: blur(6px);
+    }
+    .modal-shell.show {
+      display: flex;
+    }
+    .modal-card {
+      width: min(760px, 100%);
+      max-height: 88vh;
+      overflow-y: auto;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(255,255,255,0.55);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+      backdrop-filter: blur(22px);
+    }
+    .modal-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-card-body {
+      padding: 0;
+    }
+    .analysis-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    @media (max-width: 980px) {
+      .analysis-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .analysis-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    @media (max-width: 760px) {
+      .analysis-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .metric-item {
+      background: linear-gradient(135deg, #ebf6ff 0%, #dceeff 100%);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .analysis-chart-wrap {
+      margin-top: 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, #eaf5ff 0%, #dcedff 100%);
+      padding: 12px;
+    }
+    .analysis-chart {
+      display: block;
+      width: 100%;
+      height: 220px;
+    }
+    .analysis-note,
+    .analysis-list,
+    .advice-list {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .analysis-list,
+    .advice-list {
+      margin: 12px 0 0;
+      padding-left: 18px;
+    }
+    .analysis-list li,
+    .advice-list li {
+      margin-bottom: 8px;
+    }
+    .risk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(148,163,184,.16);
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+    .risk-badge.low {
+      background: rgba(34,197,94,.24);
+      border-color: rgba(22,163,74,.34);
+      color: #166534;
+    }
+    .risk-badge.medium {
+      background: rgba(245,158,11,.24);
+      border-color: rgba(217,119,6,.34);
+      color: #92400e;
+    }
+    .risk-badge.high {
+      background: rgba(239,68,68,.22);
+      border-color: rgba(220,38,38,.34);
+      color: #991b1b;
+    }
+    .analysis-section-title {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="index.html">← 返回首页</a>
+    </div>
+
+    <div class="safety-banner">
+      <div class="safety-marquee">
+        <div class="safety-track">
+          <div class="safety-slogan">人人讲安全，个个会应急    </div>
+          <div class="safety-slogan">防灾减灾，从排查开始    </div>
+          <div class="safety-slogan">我的安全我负责，部门安全我有责，企业安全我尽责    </div>
+          <div class="safety-slogan">生产再忙，安全不忘    </div>
+        </div>
+        <div class="safety-track" aria-hidden="true">
+          <div class="safety-slogan">人人讲安全，个个会应急    </div>
+          <div class="safety-slogan">防灾减灾，从排查开始    </div>
+          <div class="safety-slogan">我的安全我负责，部门安全我有责，企业安全我尽责    </div>
+          <div class="safety-slogan">生产再忙，安全不忘    </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <main class="panel main">
+        <div class="main-header">
+          <div>
+            <h2 style="margin:0;">系统对话区</h2>
+            <div class="subtext">支持网页输入、M5 语音接入，以及巡检任务与安全诊断联动。</div>
+          </div>
+          <div class="header-actions">
+            <div class="header-status">
+              <div id="carOnlineBadge" class="status-pill offline"><span class="dot"></span><span>Offline</span></div>
+              <div id="carModeBadge" class="status-pill"><span>Mode: Unknown</span></div>
+            </div>
+            <button class="btn" id="openCarControlBtn">巡检车控制</button>
+            <button class="btn danger" id="clearBtn">清空对话</button>
+          </div>
+        </div>
+
+        <section id="dialogBox" class="dialog">
+          <div class="empty">
+            <strong>这里还没有消息。</strong><br />
+            你可以直接输入，也可以让 M5StickS3 通过语音识别把文本送进来。
+          </div>
+        </section>
+
+        <section class="composer">
+          <div class="input-row">
+            <textarea id="messageInput" placeholder="在这里直接输入内容。"></textarea>
+            <button class="btn primary" id="sendBtn">发送</button>
+          </div>
+        </section>
+
+        <section class="analysis-panel">
+          <div class="analysis-card">
+            <div class="analysis-head">
+              <div>
+                <h3 style="margin:0;">大模型-安全隐患分析</h3>
+                <div class="subtext">聚合异常情况中心、温度监控和巡检车状态，生成风险曲线、巡检结果和诊断建议。</div>
+              </div>
+              <div class="tools">
+                <button class="btn" id="generateSafetyReportBtn">生成安全诊断</button>
+                <div id="riskBadge" class="risk-badge low"><span class="dot"></span><span>低风险</span></div>
+              </div>
+            </div>
+
+            <div class="analysis-metrics">
+              <div class="metric-item">
+                <div class="metric-label">当前风险分</div>
+                <div class="metric-value" id="riskScoreValue">0</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">24h 异常数</div>
+                <div class="metric-value" id="eventCountValue">0</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">最高温度</div>
+                <div class="metric-value" id="maxTempValue">--</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">巡检车状态</div>
+                <div class="metric-value" id="missionStateValue">离线</div>
+              </div>
+            </div>
+
+            <div class="analysis-grid">
+              <div>
+                <h4 class="analysis-section-title">异常趋势柱状图</h4>
+                <div class="analysis-chart-wrap">
+                  <canvas id="riskChart" class="analysis-chart" width="760" height="220"></canvas>
+                </div>
+                <div id="analysisUpdatedAt" class="analysis-note" style="margin-top:10px;">等待分析数据。</div>
+              </div>
+              <div>
+                <h4 class="analysis-section-title">巡检结果</h4>
+                <ul id="inspectionSummaryList" class="analysis-list">
+                  <li>等待异常情况中心、温度监控和巡检车状态同步。</li>
+                </ul>
+                <h4 class="analysis-section-title" style="margin-top:18px;">诊断建议</h4>
+                <ul id="diagnosticAdviceList" class="advice-list">
+                  <li>待系统拿到实时数据后生成建议。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="carControlModal" class="modal-shell" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-card-head">
+        <div>
+          <h3 style="margin:0;">巡检车控制</h3>
+          <div class="subtext">已切到服务器中转模式：页面访问公网 `car_api`，巡检车主动上报状态并拉取命令。</div>
+        </div>
+        <button class="btn" id="closeCarControlBtn">关闭</button>
+      </div>
+      <div class="modal-card-body">
+        <section class="car-panel">
+          <div class="car-card">
+            <div class="car-grid">
+              <div class="field">
+                <label for="carApiBaseUrl">Car API Base URL</label>
+                <input id="carApiBaseUrl" type="text" placeholder="例如：http://101.132.116.112/car_api" />
+              </div>
+              <div>
+                <div class="status-row">
+                  <div class="status-pill"><span>状态灯已移至右上角</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-buttons">
+              <button class="plan-btn active" data-point="A">A</button>
+              <button class="plan-btn active" data-point="B">B</button>
+              <button class="plan-btn active" data-point="C">C</button>
+              <button class="plan-btn active" data-point="D">D</button>
+            </div>
+
+            <div id="planSummary" class="plan-summary">Current Plan: A → B → C → D → END</div>
+            <div id="carStatusText" class="status-text">Waiting for cloud status.</div>
+
+            <div class="queue-panel" id="missionQueuePanel">
+              <div class="queue-panel-head">
+                <div>
+                  <div class="queue-panel-title">任务编排列表</div>
+                  <div class="queue-panel-sub">展示待执行、执行中、已完成的巡检任务</div>
+                </div>
+                <div class="queue-actions">
+                  <button class="queue-btn" id="refreshQueueBtn" type="button">刷新队列</button>
+                  <button class="queue-btn danger" id="clearFutureQueueBtn" type="button">停止并清理所有任务</button>
+                </div>
+              </div>
+              <div id="missionQueueBox" class="queue-empty">任务队列：暂无编排任务。</div>
+            </div>
+
+            <div class="action-row">
+              <button class="btn" id="refreshCarBtn">Refresh</button>
+              <button class="btn primary" id="startMissionBtn">Start Mission</button>
+              <button class="btn danger" id="stopMissionBtn">Stop</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DIALOG_API = 'system_dialog.php';
+    const AI_CHAT_API = 'ai_chat.php';
+    const DIALOG_TOKEN = 'jarvis_dialog_token_001';
+    const CAR_API_BASE_KEY = 'device_console_car_api_base';
+    const DEFAULT_CAR_API_BASE = 'http://101.132.116.112/car_api';
+    const CAR_POLL_INTERVAL_MS = 2000;
+    const CAR_DEVICE_ID = 'smartcar-p4-01';
+    const HELMET_API_BASE = 'http://www.psylovecl.com/helmet_saver/api';
+    const LIST_UPLOADS_URL = HELMET_API_BASE + '/list_uploads.php?limit=50';
+    const THERMAL_META_URL = '/latest_thermal.json';
+    const LOCAL_EVENTS_URL = '/local_events.php';
+
+    const dialogBox = document.getElementById('dialogBox');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const openCarControlBtn = document.getElementById('openCarControlBtn');
+    const closeCarControlBtn = document.getElementById('closeCarControlBtn');
+    const carControlModal = document.getElementById('carControlModal');
+
+    const carApiBaseUrlInput = document.getElementById('carApiBaseUrl');
+    const carOnlineBadge = document.getElementById('carOnlineBadge');
+    const carModeBadge = document.getElementById('carModeBadge');
+    const carStatusText = document.getElementById('carStatusText');
+    const planSummary = document.getElementById('planSummary');
+    const refreshCarBtn = document.getElementById('refreshCarBtn');
+    const startMissionBtn = document.getElementById('startMissionBtn');
+    const stopMissionBtn = document.getElementById('stopMissionBtn');
+    const refreshQueueBtn = document.getElementById('refreshQueueBtn');
+    const clearFutureQueueBtn = document.getElementById('clearFutureQueueBtn');
+    const planButtons = Array.from(document.querySelectorAll('.plan-btn'));
+    const riskBadge = document.getElementById('riskBadge');
+    const riskScoreValue = document.getElementById('riskScoreValue');
+    const eventCountValue = document.getElementById('eventCountValue');
+    const maxTempValue = document.getElementById('maxTempValue');
+    const missionStateValue = document.getElementById('missionStateValue');
+    const analysisUpdatedAt = document.getElementById('analysisUpdatedAt');
+    const inspectionSummaryList = document.getElementById('inspectionSummaryList');
+    const diagnosticAdviceList = document.getElementById('diagnosticAdviceList');
+    const riskChartCanvas = document.getElementById('riskChart');
+    const generateSafetyReportBtn = document.getElementById('generateSafetyReportBtn');
+
+    let lastSignature = '';
+    let carPollTimer = null;
+    let carPlan = { A: true, B: true, C: true, D: true };
+    let latestCarStatus = null;
+    let latestThermalMeta = null;
+    let latestHelmetEvents = [];
+    let latestLocalEvents = [];
+
+    let missionQueue = [];
+    let orchestratorTimer = null;
+    let activeMissionJobId = null;
+    const MISSION_QUEUE_KEY = 'device_console_mission_queue_v1';
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function openCarControlModal() {
+      carControlModal.classList.add('show');
+      carControlModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeCarControlModal() {
+      carControlModal.classList.remove('show');
+      carControlModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function getRoleView(role) {
+      if (role === 'assistant') {
+        return { className: 'assistant', label: 'AI' };
+      }
+      if (role === 'system') {
+        return { className: 'system', label: '系统' };
+      }
+      return { className: 'user', label: '我' };
+    }
+
+    function renderDialog(items) {
+      if (!items.length) {
+        dialogBox.innerHTML = `
+          <div class="empty">
+            <strong>这里还没有消息。</strong><br />
+            你可以直接输入，也可以让 M5StickS3 通过语音识别把文本送进来。
+          </div>
+        `;
+        return;
+      }
+
+      dialogBox.innerHTML = items.map(item => {
+        const roleView = getRoleView(item.role);
+        return `
+          <div class="bubble ${roleView.className}">
+            <span class="meta">${roleView.label} · ${escapeHtml(item.created_at || '')}${item.source ? ' · ' + escapeHtml(item.source) : ''}</span>
+            ${escapeHtml(item.text || '')}
+          </div>
+        `;
+      }).join('');
+      dialogBox.scrollTop = dialogBox.scrollHeight;
+    }
+
+    function buildSignature(items) {
+      return items.map(item => item.id).join('|');
+    }
+
+    async function fetchDialog() {
+      try {
+        const url = new URL(DIALOG_API, window.location.href);
+        url.searchParams.set('action', 'list');
+        url.searchParams.set('limit', '120');
+        const res = await fetch(url.toString(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        const sig = buildSignature(items);
+        if (sig !== lastSignature) {
+          renderDialog(items);
+          lastSignature = sig;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function appendDialog(role, text, source = 'web', meta = {}) {
+      const url = new URL(DIALOG_API, window.location.href);
+      url.searchParams.set('action', 'append');
+      url.searchParams.set('token', DIALOG_TOKEN);
+      const res = await fetch(url.toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role, text, source, meta })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      await fetchDialog();
+    }
+
+    async function clearDialog() {
+      const ok = window.confirm('确定清空当前系统对话记录吗？');
+      if (!ok) return;
+      const url = new URL(DIALOG_API, window.location.href);
+      url.searchParams.set('action', 'clear');
+      url.searchParams.set('token', DIALOG_TOKEN);
+      const res = await fetch(url.toString(), { method: 'POST' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      lastSignature = '';
+      window.location.reload();
+    }
+
+    async function requestAiReply(text) {
+      const res = await fetch(AI_CHAT_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          device_id: CAR_DEVICE_ID,
+          car_api_base_url: getCarApiBaseUrl(),
+          plan: normalizePlan(carPlan)
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error('HTTP ' + res.status);
+      }
+
+      const data = await res.json();
+      if (!data.ok) {
+        throw new Error(data.error || 'AI request failed');
+      }
+
+      if (data.action === 'orchestrate_mission' && data.orchestration && Array.isArray(data.orchestration.jobs)) {
+        appendMissionJobs(data.orchestration.jobs, data.orchestration.mode || 'append_queue');
+      }
+
+      await fetchDialog();
+
+      if (data.action && data.action !== 'chat') {
+        await refreshCarStatus();
+      }
+
+      return data;
+    }
+
+    function getCarApiBaseUrl() {
+      return carApiBaseUrlInput.value.trim().replace(/\/$/, '');
+    }
+
+    function saveCarApiBaseUrl() {
+      localStorage.setItem(CAR_API_BASE_KEY, carApiBaseUrlInput.value.trim());
+    }
+
+    function setCarOffline(reason = 'Cloud status unavailable.') {
+      latestCarStatus = null;
+      carOnlineBadge.className = 'status-pill offline';
+      carOnlineBadge.innerHTML = '<span class="dot"></span><span>Offline</span>';
+      carModeBadge.className = 'status-pill';
+      carModeBadge.innerHTML = '<span>Mode: Unknown</span>';
+      carStatusText.textContent = reason;
+      updateSafetyAnalysis();
+    }
+
+    function setCarOnline(data) {
+      latestCarStatus = data || null;
+      const online = !!data.online;
+      const status = data.status || {};
+      const pending = data.pending_command || {};
+      const running = !!status.plan_running;
+      const mode = status.mode || 'UNKNOWN';
+      const activeTask = status.active_task || 'NONE';
+      const routeProgress = `${status.route_progress || 0}/${status.route_task_count || 0}`;
+      const cloudText = `Cloud: P${status.cloud_push_ok ? 'OK' : 'FAIL'} / C${status.cloud_pull_ok ? 'OK' : 'FAIL'}`;
+      const ipText = status.ip || '--';
+
+      carOnlineBadge.className = `status-pill ${online ? (running ? 'busy' : 'online') : 'offline'}`;
+      carOnlineBadge.innerHTML = `<span class="dot"></span><span>${online ? (running ? 'Online · Running' : 'Online') : 'Offline'}</span>`;
+      carModeBadge.className = 'status-pill';
+      carModeBadge.innerHTML = `<span>Mode: ${escapeHtml(mode)}</span>`;
+      carStatusText.textContent = `Task: ${activeTask} | Progress: ${routeProgress} | IP: ${ipText} | ${cloudText}${pending.has_command ? ' | Pending Command' : ''}`;
+      updateSafetyAnalysis();
+    }
+
+    function updatePlanButtons() {
+      planButtons.forEach(button => {
+        const point = button.dataset.point;
+        button.classList.toggle('active', !!carPlan[point]);
+      });
+      const selected = ['A', 'B', 'C', 'D'].filter(point => carPlan[point]);
+      planSummary.textContent = selected.length
+        ? `Current Plan: ${selected.join(' → ')} → END`
+        : 'Current Plan: END only';
+    }
+
+    function normalizePlan(plan) {
+      return {
+        A: !!plan.A,
+        B: !!plan.B,
+        C: !!plan.C,
+        D: !!plan.D,
+      };
+    }
+
+    function saveMissionQueue() {
+      localStorage.setItem(MISSION_QUEUE_KEY, JSON.stringify(missionQueue));
+    }
+
+    function loadMissionQueue() {
+      try {
+        const raw = localStorage.getItem(MISSION_QUEUE_KEY);
+        missionQueue = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(missionQueue)) missionQueue = [];
+      } catch (error) {
+        missionQueue = [];
+      }
+    }
+
+    function generateJobId() {
+      return 'job_' + Date.now() + '_' + Math.random().toString(16).slice(2, 8);
+    }
+
+    function nowIso() {
+      return new Date().toISOString();
+    }
+
+    const MISSION_COMPLETE_COOLDOWN_MS = 5000;
+
+    function isCarBusy() {
+      return !!getActiveRunningJob();
+    }
+
+    function isMissionComplete(statusOverride = null) {
+      const status = statusOverride || (latestCarStatus && latestCarStatus.status ? latestCarStatus.status : null);
+      if (!status) return false;
+      const mode = String(status.mode || '').toUpperCase();
+      return mode === 'MISSION_COMPLETE';
+    }
+
+    function normalizeJob(job, index = 0) {
+      const normalized = {
+        id: job.id || generateJobId(),
+        type: job.type || 'start_mission',
+        plan: normalizePlan(job.plan || { A: false, B: false, C: false, D: false }),
+        schedule: job.schedule || { kind: 'immediate' },
+        depends_on: job.depends_on || null,
+        status: job.status || 'queued',
+        title: job.title || `任务 ${index + 1}`,
+        created_at: job.created_at || nowIso(),
+        started_at: job.started_at || null,
+        finished_at: job.finished_at || null,
+        dispatched_at: job.dispatched_at || null,
+        cooldown_until: job.cooldown_until || null,
+        last_error: job.last_error || null
+      };
+
+      if (normalized.schedule.kind === 'delay' && !normalized.schedule.execute_at) {
+        const delaySeconds = Number(normalized.schedule.delay_seconds || 0);
+        normalized.schedule.execute_at = new Date(Date.now() + delaySeconds * 1000).toISOString();
+        normalized.status = 'waiting_time';
+      }
+
+      if (normalized.schedule.kind === 'clock' && !normalized.status) {
+        normalized.status = 'waiting_time';
+      }
+
+      if (normalized.schedule.kind === 'after_job' && !normalized.status) {
+        normalized.status = 'waiting_dependency';
+      }
+
+      return normalized;
+    }
+
+    function describePlan(plan) {
+      const selected = ['A', 'B', 'C', 'D'].filter(point => plan && plan[point]);
+      return selected.length ? selected.join('→') : 'END';
+    }
+
+    function describeSchedule(job) {
+      if (!job || !job.schedule) return '--';
+      const s = job.schedule;
+      if (s.kind === 'immediate') return '立即';
+      if (s.kind === 'delay') return `${s.delay_seconds || 0}s后`;
+      if (s.kind === 'clock') return s.time || s.execute_at || '--';
+      if (s.kind === 'after_job') return `等待 ${job.depends_on || '前序任务'}`;
+      return s.kind || '--';
+    }
+
+    function formatRemainingMs(ms) {
+      if (!Number.isFinite(ms)) return '--';
+      if (ms <= 0) return '即将执行';
+      const totalSeconds = Math.ceil(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      if (hours > 0) return `${hours}时${minutes}分${seconds}秒`;
+      if (minutes > 0) return `${minutes}分${seconds}秒`;
+      return `${seconds}秒`;
+    }
+
+    function describeCountdown(job) {
+      if (!job || !job.schedule) return '--';
+      const kind = job.schedule.kind;
+      if (kind !== 'delay' && kind !== 'clock') return '--';
+      const executeAt = Date.parse(job.schedule.execute_at || '');
+      if (!Number.isFinite(executeAt)) return '--';
+      return formatRemainingMs(executeAt - Date.now());
+    }
+
+    function describeJobStatus(status) {
+      const map = {
+        queued: '待执行',
+        waiting_time: '等待时间',
+        waiting_dependency: '等待前序任务',
+        waiting_car: '等待车辆空闲',
+        dispatching: '下发中',
+        running: '执行中',
+        done: '已完成',
+        failed: '失败',
+        cancelled: '已取消'
+      };
+      return map[status] || status;
+    }
+
+    function buildMissionQueueHtml() {
+      if (!missionQueue.length) {
+        return {
+          className: 'queue-empty',
+          html: '任务队列：暂无编排任务。'
+        };
+      }
+
+      const visibleJobs = missionQueue.slice().sort((a, b) => {
+        const aTime = Date.parse(a.schedule && a.schedule.execute_at ? a.schedule.execute_at : '') || 0;
+        const bTime = Date.parse(b.schedule && b.schedule.execute_at ? b.schedule.execute_at : '') || 0;
+        if (aTime !== bTime) return aTime - bTime;
+        return (a.created_at || '').localeCompare(b.created_at || '');
+      });
+
+      return {
+        className: 'queue-list',
+        html: visibleJobs.map(job => `
+          <div class="queue-item">
+            <div class="queue-item-top">
+              <div>
+                <div class="queue-item-title">${escapeHtml(job.title || job.id)}</div>
+                <div class="queue-item-meta">任务 ID：${escapeHtml(job.id)}</div>
+              </div>
+              <div class="queue-status-badge ${escapeHtml(job.status)}">${escapeHtml(describeJobStatus(job.status))}</div>
+            </div>
+
+            <div class="queue-item-row">
+              <div class="queue-kv">
+                <div class="queue-kv-label">执行时间</div>
+                <div class="queue-kv-value">${escapeHtml(describeSchedule(job))}</div>
+              </div>
+              <div class="queue-kv">
+                <div class="queue-kv-label">倒计时</div>
+                <div class="queue-kv-value">${escapeHtml(describeCountdown(job))}</div>
+              </div>
+              <div class="queue-kv">
+                <div class="queue-kv-label">巡检路线</div>
+                <div class="queue-kv-value">${escapeHtml(describePlan(job.plan))}</div>
+              </div>
+            </div>
+
+            <div class="queue-item-row">
+              <div class="queue-kv">
+                <div class="queue-kv-label">前序依赖</div>
+                <div class="queue-kv-value">${escapeHtml(job.depends_on || '--')}</div>
+              </div>
+              <div class="queue-kv">
+                <div class="queue-kv-label">任务类型</div>
+                <div class="queue-kv-value">${escapeHtml(job.type || '--')}</div>
+              </div>
+              <div class="queue-kv">
+                <div class="queue-kv-label">当前状态</div>
+                <div class="queue-kv-value">${escapeHtml(describeJobStatus(job.status))}</div>
+              </div>
+            </div>
+
+            ${(job.started_at || job.finished_at) ? `
+              <div class="queue-item-row">
+                <div class="queue-kv">
+                  <div class="queue-kv-label">创建时间</div>
+                  <div class="queue-kv-value">${escapeHtml(job.created_at || '--')}</div>
+                </div>
+                <div class="queue-kv">
+                  <div class="queue-kv-label">开始时间</div>
+                  <div class="queue-kv-value">${escapeHtml(job.started_at || '--')}</div>
+                </div>
+                <div class="queue-kv">
+                  <div class="queue-kv-label">冷却截止</div>
+                  <div class="queue-kv-value">${escapeHtml(job.cooldown_until || '--')}</div>
+                </div>
+                <div class="queue-kv">
+                  <div class="queue-kv-label">完成时间</div>
+                  <div class="queue-kv-value">${escapeHtml(job.finished_at || '--')}</div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${job.last_error ? `<div class="queue-item-meta" style="margin-top:8px;color:#dc2626;">错误：${escapeHtml(job.last_error)}</div>` : ''}
+
+            <div class="queue-item-actions">
+              ${job.status === 'done'
+                ? `<button class="queue-btn" type="button" onclick="deleteMissionJob('${escapeHtml(job.id)}')">删除任务</button>`
+                : ((job.status === 'running' || job.status === 'dispatching')
+                  ? `<button class="queue-btn" type="button" disabled>执行中</button>`
+                  : `<button class="queue-btn danger" type="button" onclick="cancelMissionJob('${escapeHtml(job.id)}')">取消任务</button>`)}
+            </div>
+          </div>
+        `).join('')
+      };
+    }
+
+    function renderMissionQueueStatus() {
+      const payload = buildMissionQueueHtml();
+      const box = document.getElementById('missionQueueBox');
+      if (!box) return;
+      box.className = payload.className;
+      box.innerHTML = payload.html;
+    }
+
+    function appendMissionJobs(jobs, mode = 'append_queue') {
+      const normalizedJobs = (jobs || []).map((job, index) => normalizeJob(job, index));
+
+      for (let i = 0; i < normalizedJobs.length; i += 1) {
+        const job = normalizedJobs[i];
+        const scheduleKind = job && job.schedule ? job.schedule.kind : '';
+        if (scheduleKind !== 'after_job') continue;
+
+        const dep = missionQueue.find(item => item.id === job.depends_on)
+          || normalizedJobs.find(item => item.id === job.depends_on);
+
+        if (!dep && i > 0) {
+          job.depends_on = normalizedJobs[i - 1].id;
+        }
+      }
+
+      if (mode === 'replace_queue') {
+        missionQueue = normalizedJobs;
+        activeMissionJobId = null;
+      } else {
+        missionQueue = missionQueue.concat(normalizedJobs);
+      }
+
+      saveMissionQueue();
+      renderMissionQueueStatus();
+    }
+
+    function updateQueuedJobStatesByTime() {
+      const now = Date.now();
+      missionQueue.forEach(job => {
+        if (job.status !== 'waiting_time') return;
+        const executeAt = Date.parse(job.schedule && job.schedule.execute_at ? job.schedule.execute_at : '');
+        if (Number.isFinite(executeAt) && executeAt <= now) {
+          job.status = 'queued';
+        }
+      });
+    }
+
+    function updateQueuedJobStatesByDependency() {
+      missionQueue.forEach((job, index) => {
+        if (job.status !== 'waiting_dependency') return;
+
+        if (!job.depends_on) {
+          if (index > 0) {
+            const prevJob = missionQueue[index - 1];
+            if (prevJob && prevJob.status === 'done') {
+              job.status = 'queued';
+            }
+          } else {
+            job.status = 'queued';
+          }
+          return;
+        }
+
+        const dep = missionQueue.find(item => item.id === job.depends_on);
+        if (dep && dep.status === 'done') {
+          job.status = 'queued';
+          return;
+        }
+
+        if (!dep && index > 0) {
+          const prevJob = missionQueue[index - 1];
+          if (prevJob && prevJob.status === 'done') {
+            job.depends_on = prevJob.id;
+            job.status = 'queued';
+          }
+        }
+      });
+    }
+
+    function releaseBlockedJobs() {
+      updateQueuedJobStatesByTime();
+      updateQueuedJobStatesByDependency();
+    }
+
+    function getNextDispatchableJob() {
+      return missionQueue.find(job => job.status === 'queued');
+    }
+
+    function getActiveRunningJob() {
+      if (!activeMissionJobId) return null;
+      return missionQueue.find(job => job.id === activeMissionJobId) || null;
+    }
+
+    async function dispatchMissionJob(job) {
+      if (!job) return;
+      job.status = 'dispatching';
+      job.started_at = job.started_at || nowIso();
+      job.dispatched_at = nowIso();
+      job.cooldown_until = null;
+      saveMissionQueue();
+      renderMissionQueueStatus();
+
+      try {
+        if (job.type === 'start_mission') {
+          await sendCloudCommand('set_plan', job.plan);
+          await sendCloudCommand('start');
+        } else if (job.type === 'stop_mission') {
+          await sendCloudCommand('stop');
+        } else {
+          throw new Error('Unsupported job type: ' + job.type);
+        }
+
+        job.status = 'running';
+        activeMissionJobId = job.id;
+        saveMissionQueue();
+        renderMissionQueueStatus();
+      } catch (error) {
+        job.status = 'failed';
+        job.last_error = error.message;
+        activeMissionJobId = null;
+        saveMissionQueue();
+        renderMissionQueueStatus();
+      }
+    }
+
+    function settleRunningJobIfCompleted() {
+      const runningJob = getActiveRunningJob();
+      if (!runningJob) return false;
+
+      if (!isMissionComplete()) {
+        return false;
+      }
+
+      const now = Date.now();
+      const cooldownAt = Date.parse(runningJob.cooldown_until || '');
+      if (!Number.isFinite(cooldownAt)) {
+        runningJob.cooldown_until = new Date(now + MISSION_COMPLETE_COOLDOWN_MS).toISOString();
+        saveMissionQueue();
+        renderMissionQueueStatus();
+        return false;
+      }
+
+      if (cooldownAt > now) {
+        renderMissionQueueStatus();
+        return false;
+      }
+
+      runningJob.status = 'done';
+      runningJob.finished_at = nowIso();
+      activeMissionJobId = null;
+      releaseBlockedJobs();
+      saveMissionQueue();
+      renderMissionQueueStatus();
+      return true;
+    }
+
+    function resetWaitingCarJobsIfIdle() {
+      updateQueuedJobStatesByTime();
+      updateQueuedJobStatesByDependency();
+    }
+
+    async function runMissionOrchestrator() {
+      settleRunningJobIfCompleted();
+      releaseBlockedJobs();
+
+      const runningJob = getActiveRunningJob();
+      if (runningJob) {
+        renderMissionQueueStatus();
+        return;
+      }
+
+      const nextJob = getNextDispatchableJob();
+      if (!nextJob) {
+        saveMissionQueue();
+        renderMissionQueueStatus();
+        return;
+      }
+
+      await dispatchMissionJob(nextJob);
+    }
+
+    function removeMissionJob(jobId) {
+      missionQueue = missionQueue.filter(job => job.id !== jobId);
+      saveMissionQueue();
+      renderMissionQueueStatus();
+    }
+
+    function cancelMissionJob(jobId) {
+      const target = missionQueue.find(job => job.id === jobId);
+      if (!target) return;
+      if (target.status === 'running' || target.status === 'dispatching') {
+        alert('当前任务正在执行或下发中，请使用“停止并清理所有任务”。');
+        return;
+      }
+      const ok = window.confirm('确认取消该任务吗？');
+      if (!ok) return;
+      removeMissionJob(jobId);
+    }
+
+    function deleteMissionJob(jobId) {
+      const target = missionQueue.find(job => job.id === jobId);
+      if (!target) return;
+      const ok = window.confirm('确认删除该任务吗？');
+      if (!ok) return;
+      removeMissionJob(jobId);
+    }
+
+    async function stopAndClearAllMissionJobs() {
+      const ok = window.confirm('确认停止当前巡检，并清理所有任务吗？');
+      if (!ok) return;
+
+      try {
+        saveCarApiBaseUrl();
+        await sendCloudCommand('stop');
+      } catch (error) {
+        alert('停止巡检失败：' + error.message);
+        return;
+      }
+
+      missionQueue = [];
+      activeMissionJobId = null;
+      saveMissionQueue();
+      renderMissionQueueStatus();
+      carStatusText.textContent = '已停止巡检并清理所有任务。';
+    }
+
+    function initMissionQueue() {
+      loadMissionQueue();
+      missionQueue = missionQueue.map((job, index) => normalizeJob(job, index));
+      saveMissionQueue();
+      renderMissionQueueStatus();
+    }
+
+    function startMissionOrchestrator() {
+      if (orchestratorTimer) clearInterval(orchestratorTimer);
+      orchestratorTimer = setInterval(async () => {
+        try {
+          resetWaitingCarJobsIfIdle();
+          await runMissionOrchestrator();
+        } catch (error) {
+          console.error('Mission orchestrator error:', error);
+        }
+      }, 1000);
+    }
+
+    async function fetchCarApi(path, options = {}) {
+      const baseUrl = getCarApiBaseUrl();
+      if (!baseUrl) {
+        throw new Error('Please fill Car API Base URL');
+      }
+      const response = await fetch(`${baseUrl}${path}`, options);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function refreshCarStatus() {
+      try {
+        const data = await fetchCarApi('/car_status.php', { cache: 'no-store' });
+        setCarOnline(data || {});
+        settleRunningJobIfCompleted();
+        resetWaitingCarJobsIfIdle();
+        renderMissionQueueStatus();
+      } catch (error) {
+        setCarOffline(`Status request failed: ${error.message}`);
+      }
+    }
+
+    function parseEventTime(item) {
+      const raw = String((item && (item.captured_at || item.server_received_at || item.updated_at)) || '').replace(/-/g, '/');
+      const ts = Date.parse(raw);
+      return Number.isFinite(ts) ? ts : NaN;
+    }
+
+    function getRecentEventCount(events, hours = 24) {
+      const cutoff = Date.now() - hours * 60 * 60 * 1000;
+      return events.filter(item => {
+        const ts = parseEventTime(item);
+        return Number.isFinite(ts) && ts >= cutoff;
+      }).length;
+    }
+
+    function formatTemp(value) {
+      return value == null || Number.isNaN(Number(value)) ? '--' : `${Number(value).toFixed(1)}°C`;
+    }
+
+    function buildDailySeries(helmetEvents, localEvents) {
+      const map = new Map();
+      const now = new Date();
+      for (let i = 6; i >= 0; i -= 1) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        map.set(key, { label: key.slice(5), helmet: 0, thermal: 0 });
+      }
+
+      helmetEvents.forEach(item => {
+        const ts = parseEventTime(item);
+        if (!Number.isFinite(ts)) return;
+        const d = new Date(ts);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (map.has(key)) {
+          map.get(key).helmet += 1;
+        }
+      });
+
+      localEvents.forEach(item => {
+        if (String(item.event_type || '') !== 'thermal_overheat') return;
+        const ts = parseEventTime(item);
+        if (!Number.isFinite(ts)) return;
+        const d = new Date(ts);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (map.has(key)) {
+          map.get(key).thermal += 1;
+        }
+      });
+
+      return Array.from(map.values());
+    }
+
+    function drawRiskChart(series) {
+      const canvas = riskChartCanvas;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = '#eef7ff';
+      ctx.fillRect(0, 0, width, height);
+
+      const left = 42;
+      const right = width - 14;
+      const top = 18;
+      const bottom = height - 36;
+      const chartWidth = right - left;
+      const chartHeight = bottom - top;
+      const maxValue = Math.max(1, ...series.flatMap(point => [point.helmet, point.thermal]));
+
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.14)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i += 1) {
+        const y = top + (chartHeight / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '12px system-ui';
+      for (let i = 4; i >= 0; i -= 1) {
+        const value = Math.round((maxValue / 4) * i);
+        const y = top + (chartHeight / 4) * (4 - i) + 4;
+        ctx.fillText(String(value), 12, y);
+      }
+
+      if (!series.length) {
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('暂无异常趋势数据', left, height / 2);
+        return;
+      }
+
+      const groupWidth = chartWidth / series.length;
+      const barWidth = Math.min(18, groupWidth * 0.24);
+
+      series.forEach((point, index) => {
+        const xBase = left + groupWidth * index + groupWidth / 2;
+        const helmetHeight = (point.helmet / maxValue) * chartHeight;
+        const thermalHeight = (point.thermal / maxValue) * chartHeight;
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(xBase - barWidth - 3, bottom - helmetHeight, barWidth, helmetHeight);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(xBase + 3, bottom - thermalHeight, barWidth, thermalHeight);
+
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(point.label, xBase - 18, height - 12);
+      });
+
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(right - 170, 12, 12, 12);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText('安全帽异常', right - 152, 22);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(right - 76, 12, 12, 12);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText('温度异常', right - 58, 22);
+    }
+
+    function setList(el, items) {
+      el.innerHTML = items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+    }
+
+    function applyRiskBadge(level, score) {
+      let riskClass = 'low';
+      let riskLabel = '低风险';
+      if (level === 'high' || score >= 70) {
+        riskClass = 'high';
+        riskLabel = '高风险';
+      } else if (level === 'medium' || score >= 40) {
+        riskClass = 'medium';
+        riskLabel = '中风险';
+      }
+      riskBadge.className = `risk-badge ${riskClass}`;
+      riskBadge.innerHTML = `<span class="dot"></span><span>${riskLabel}</span>`;
+    }
+
+    function applySafetyReport(report) {
+      if (!report || typeof report !== 'object') {
+        return;
+      }
+      if (typeof report.risk_score === 'number') {
+        riskScoreValue.textContent = String(report.risk_score);
+      }
+      applyRiskBadge(report.risk_level || 'low', Number(report.risk_score || 0));
+      if (report.context && typeof report.context === 'object') {
+        const ctx = report.context;
+        if (typeof ctx.event_count_24h === 'number') {
+          eventCountValue.textContent = String(ctx.event_count_24h);
+        }
+        if (ctx.thermal && ctx.thermal.t_max != null) {
+          maxTempValue.textContent = formatTemp(ctx.thermal.t_max);
+        }
+        if (ctx.car) {
+          missionStateValue.textContent = ctx.car.plan_running ? '巡检中' : (ctx.car.online ? '在线待机' : '离线');
+        }
+      }
+      if (Array.isArray(report.summary) && report.summary.length) {
+        setList(inspectionSummaryList, report.summary);
+      }
+      if (Array.isArray(report.advice) && report.advice.length) {
+        setList(diagnosticAdviceList, report.advice);
+      }
+      if (report.report) {
+        analysisUpdatedAt.textContent = `AI 诊断已生成 · ${new Date().toLocaleString('zh-CN', { hour12: false })}`;
+      }
+      if (report.context && report.context.thermal) {
+        const thermalUpdatedAt = report.context.thermal.updated_at || '';
+        if (thermalUpdatedAt) {
+          const updatedTs = Date.parse(thermalUpdatedAt.replace(/-/g, '/'));
+          if (Number.isFinite(updatedTs)) {
+            const ageHours = (Date.now() - updatedTs) / 3600000;
+            if (ageHours > 24) {
+              analysisUpdatedAt.textContent += ' · 温度数据已过期';
+            }
+          }
+        }
+      }
+    }
+
+    function updateSafetyAnalysis() {
+      const recentHelmetCount = getRecentEventCount(latestHelmetEvents, 24);
+      const recentLocalCount = getRecentEventCount(latestLocalEvents, 24);
+      const recentThermalCount = getRecentEventCount(
+        latestLocalEvents.filter(item => String(item.event_type || '') === 'thermal_overheat'),
+        24
+      );
+      const recentEventCount = recentHelmetCount + recentLocalCount;
+      const thermalMax = latestThermalMeta && Number.isFinite(Number(latestThermalMeta.t_max)) ? Number(latestThermalMeta.t_max) : null;
+      const carStatus = latestCarStatus && latestCarStatus.status ? latestCarStatus.status : null;
+
+      let riskScore = Math.min(45, recentHelmetCount * 10 + recentThermalCount * 15 + Math.max(0, recentLocalCount - recentThermalCount) * 8);
+
+      if (thermalMax != null) {
+        if (thermalMax >= 80) riskScore += 35;
+        else if (thermalMax >= 60) riskScore += 25;
+        else if (thermalMax >= 45) riskScore += 15;
+        else if (thermalMax >= 38) riskScore += 8;
+      }
+
+      if (carStatus && carStatus.plan_running) {
+        riskScore += 8;
+      }
+
+      if (!latestCarStatus || !latestCarStatus.online) {
+        riskScore += 12;
+      }
+
+      riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
+      riskScoreValue.textContent = String(riskScore);
+      eventCountValue.textContent = String(recentEventCount);
+      maxTempValue.textContent = formatTemp(thermalMax);
+      missionStateValue.textContent = latestCarStatus && latestCarStatus.online ? '在线' : '离线';
+
+      applyRiskBadge(riskScore >= 70 ? 'high' : (riskScore >= 40 ? 'medium' : 'low'), riskScore);
+
+      const series = buildDailySeries(latestHelmetEvents, latestLocalEvents);
+      drawRiskChart(series);
+
+      const summaryItems = [];
+      summaryItems.push(recentEventCount > 0
+        ? `24h 异常 ${recentEventCount} 条，其中温度异常 ${recentThermalCount} 条。`
+        : '24h 无新增异常。');
+      summaryItems.push(thermalMax != null
+        ? `当前最高温 ${thermalMax.toFixed(1)}°C。`
+        : '温度数据缺失。');
+      summaryItems.push(latestCarStatus && latestCarStatus.online
+        ? `${carStatus && carStatus.plan_running ? '巡检中' : '在线待机'}。`
+        : '巡检车离线。');
+      setList(inspectionSummaryList, summaryItems.slice(0, 3));
+
+      const adviceItems = [];
+      if (recentHelmetCount > 0) {
+        adviceItems.push('优先复核安全帽异常抓拍。');
+      }
+      if (recentThermalCount > 0 || (thermalMax != null && thermalMax >= 60)) {
+        adviceItems.push('排查高温点位并复测周边设备。');
+      }
+      if (!latestCarStatus || !latestCarStatus.online) {
+        adviceItems.push('恢复巡检车在线，避免漏检。');
+      }
+      if (!adviceItems.length) {
+        adviceItems.push('继续保持例行巡检与温度监测。');
+      }
+      setList(diagnosticAdviceList, adviceItems.slice(0, 3));
+
+      analysisUpdatedAt.textContent = `分析更新时间：${new Date().toLocaleString('zh-CN', { hour12: false })}`;
+    }
+
+    async function refreshSafetyInputs() {
+      try {
+        const uploadsRes = await fetch(LIST_UPLOADS_URL + '&t=' + Date.now(), { cache: 'no-store' });
+        if (uploadsRes.ok) {
+          const uploadsData = await uploadsRes.json();
+          latestHelmetEvents = Array.isArray(uploadsData.items) ? uploadsData.items : [];
+        }
+      } catch (error) {
+        latestHelmetEvents = [];
+      }
+
+      try {
+        const localEventsRes = await fetch(LOCAL_EVENTS_URL + '?t=' + Date.now(), { cache: 'no-store' });
+        if (localEventsRes.ok) {
+          const localEventsData = await localEventsRes.json();
+          latestLocalEvents = Array.isArray(localEventsData.items) ? localEventsData.items : [];
+        }
+      } catch (error) {
+        latestLocalEvents = [];
+      }
+
+      try {
+        const thermalRes = await fetch(THERMAL_META_URL + '?t=' + Date.now(), { cache: 'no-store' });
+        if (thermalRes.ok) {
+          const thermalData = await thermalRes.json();
+          latestThermalMeta = thermalData && thermalData.ok ? thermalData : null;
+        }
+      } catch (error) {
+        latestThermalMeta = null;
+      }
+
+      updateSafetyAnalysis();
+    }
+
+    async function generateSafetyReport() {
+      generateSafetyReportBtn.disabled = true;
+      generateSafetyReportBtn.textContent = '分析中...';
+      try {
+        const reportPrompt = '请基于当前异常情况中心、温度监控和巡检车状态，生成一份安全诊断报告，并给出风险等级、巡检结果摘要和诊断建议。';
+        const res = await fetch(AI_CHAT_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: reportPrompt,
+            device_id: CAR_DEVICE_ID,
+            car_api_base_url: getCarApiBaseUrl(),
+            helmet_api_base_url: HELMET_API_BASE,
+            thermal_meta_url: new URL(THERMAL_META_URL, window.location.href).toString(),
+            plan: normalizePlan(carPlan)
+          })
+        });
+        const raw = await res.text();
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch (parseError) {
+          console.error('generateSafetyReport raw response:', raw);
+          throw new Error('服务端返回的不是 JSON，请检查 ai_chat.php 或 PHP 报错输出');
+        }
+        if (!res.ok) {
+          throw new Error(data.error || ('HTTP ' + res.status));
+        }
+        if (!data.ok) {
+          throw new Error(data.error || 'AI request failed');
+        }
+        if (data.safety_report) {
+          applySafetyReport(data.safety_report);
+        }
+        await fetchDialog();
+      } catch (error) {
+        alert('生成安全诊断失败：' + error.message);
+      } finally {
+        generateSafetyReportBtn.disabled = false;
+        generateSafetyReportBtn.textContent = '生成安全诊断';
+      }
+    }
+
+    async function sendCloudCommand(command, plan = null) {
+      const payload = {
+        device_id: CAR_DEVICE_ID,
+        command,
+      };
+      if (plan) {
+        payload.plan = normalizePlan(plan);
+      }
+      const result = await fetchCarApi('/car_set_command.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!result.ok) {
+        throw new Error(result.message || 'Command failed');
+      }
+      await refreshCarStatus();
+      return result;
+    }
+
+    function startCarPolling() {
+      if (carPollTimer) {
+        clearInterval(carPollTimer);
+      }
+      carPollTimer = setInterval(refreshCarStatus, CAR_POLL_INTERVAL_MS);
+    }
+
+    sendBtn.addEventListener('click', async () => {
+      const text = messageInput.value.trim();
+      if (!text) return;
+      sendBtn.disabled = true;
+      sendBtn.textContent = '处理中...';
+      try {
+        await appendDialog('user', text, 'web-input');
+        messageInput.value = '';
+        await requestAiReply(text);
+      } catch (err) {
+        alert('发送失败：' + err.message);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = '发送';
+      }
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        sendBtn.click();
+      }
+    });
+
+    clearBtn.addEventListener('click', async () => {
+      try {
+        await clearDialog();
+      } catch (err) {
+        alert('清空失败：' + err.message);
+      }
+    });
+
+    planButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const point = button.dataset.point;
+        carPlan[point] = !carPlan[point];
+        updatePlanButtons();
+      });
+    });
+
+    carApiBaseUrlInput.addEventListener('change', () => {
+      saveCarApiBaseUrl();
+      refreshCarStatus();
+    });
+
+    refreshCarBtn.addEventListener('click', async () => {
+      try {
+        saveCarApiBaseUrl();
+        await refreshCarStatus();
+      } catch (err) {
+        alert('刷新状态失败：' + err.message);
+      }
+    });
+
+    startMissionBtn.addEventListener('click', async () => {
+      try {
+        saveCarApiBaseUrl();
+        await sendCloudCommand('start', carPlan);
+        carStatusText.textContent = 'Mission started with current plan.';
+      } catch (err) {
+        alert('开始巡检失败：' + err.message);
+      }
+    });
+
+    stopMissionBtn.addEventListener('click', async () => {
+      try {
+        saveCarApiBaseUrl();
+        await sendCloudCommand('stop');
+        carStatusText.textContent = 'Stop command queued.';
+      } catch (err) {
+        alert('停止巡检失败：' + err.message);
+      }
+    });
+
+    refreshQueueBtn.addEventListener('click', () => {
+      renderMissionQueueStatus();
+    });
+
+    clearFutureQueueBtn.addEventListener('click', async () => {
+      await stopAndClearAllMissionJobs();
+    });
+
+    generateSafetyReportBtn.addEventListener('click', async () => {
+      await generateSafetyReport();
+    });
+
+    openCarControlBtn.addEventListener('click', () => {
+      openCarControlModal();
+    });
+
+    closeCarControlBtn.addEventListener('click', () => {
+      closeCarControlModal();
+    });
+
+    carControlModal.addEventListener('click', (event) => {
+      if (event.target === carControlModal) {
+        closeCarControlModal();
+      }
+    });
+
+    function initCarControl() {
+      const saved = localStorage.getItem(CAR_API_BASE_KEY);
+      carApiBaseUrlInput.value = saved || DEFAULT_CAR_API_BASE;
+      updatePlanButtons();
+      initMissionQueue();
+      refreshCarStatus();
+      startCarPolling();
+      startMissionOrchestrator();
+    }
+
+    fetchDialog();
+    setInterval(fetchDialog, 1000);
+    initCarControl();
+    refreshSafetyInputs();
+    setInterval(refreshSafetyInputs, 5000);
+  </script>
+</body>
+</html>

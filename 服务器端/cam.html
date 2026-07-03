@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>安全帽识别监控中心</title>
+<style>
+:root {
+  --bg: #f7fbff;
+  --panel: rgba(214, 234, 255, 0.84);
+  --panel-strong: rgba(205, 228, 255, 0.92);
+  --line: rgba(59, 130, 246, 0.12);
+  --text: #0f172a;
+  --muted: #64748b;
+  --blue-1: #dff0ff;
+  --blue-2: #cfe7ff;
+  --blue-3: #b6daff;
+  --blue-4: #60a5fa;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --shadow: 0 16px 40px rgba(59, 130, 246, 0.10);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  background: #ffffff;
+  color: var(--text);
+  min-height: 100vh;
+  padding: 24px;
+}
+.wrap {
+  max-width: 1380px;
+  margin: 0 auto;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.back {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  border: 1px solid rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.72);
+  color: var(--text);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(18px);
+}
+.badge.ok { color: var(--ok); }
+.badge.warn { color: var(--warn); }
+.badge.danger { color: var(--danger); }
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.card {
+  background: linear-gradient(135deg, var(--blue-1) 0%, var(--blue-2) 100%);
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 28px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px);
+  margin-bottom: 20px;
+}
+.card.hero {
+  background: linear-gradient(135deg, #d7ebff 0%, #c9e2ff 100%);
+}
+h1 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+}
+h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.safety-banner {
+  margin: 0 0 18px;
+  padding: 16px 0;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  box-shadow: 0 14px 30px rgba(185, 28, 28, 0.20);
+  overflow: hidden;
+}
+.safety-marquee {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  animation: safety-marquee 42s linear infinite;
+  will-change: transform;
+}
+.safety-track {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.safety-slogan {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #facc15;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.12);
+  padding-left: 72px;
+}
+.safety-slogan:first-child {
+  padding-left: 36px;
+}
+@keyframes safety-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.section-sub {
+  color: var(--muted);
+  font-size: 14px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+button, .btn {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s ease;
+}
+button.primary, .btn.primary {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  color: #fff;
+  box-shadow: 0 10px 18px rgba(59, 130, 246, 0.22);
+}
+button.primary:hover, .btn.primary:hover {
+  transform: translateY(-1px);
+}
+button.secondary, .btn.secondary {
+  background: rgba(255,255,255,0.92);
+  color: var(--text);
+  border: 1px solid rgba(15,23,42,0.08);
+}
+button.danger, .btn.danger {
+  background: rgba(220, 38, 38, 0.10);
+  color: var(--danger);
+  border: 1px solid rgba(220, 38, 38, 0.14);
+}
+.monitor-layout {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 18px;
+}
+@media (max-width: 1080px) {
+  .monitor-layout { grid-template-columns: 1fr; }
+}
+.viewer-card,
+.panel-soft {
+  background: linear-gradient(135deg, #e6f3ff 0%, #d7ebff 100%);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.08);
+}
+.viewer-wrap,
+.image-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e8eef8;
+  min-height: 380px;
+}
+.viewer-wrap img,
+.image-wrap img {
+  display: block;
+  width: 100%;
+  min-height: 380px;
+  object-fit: contain;
+  background: #edf4ff;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  color: var(--muted);
+  background: rgba(255,255,255,0.70);
+  backdrop-filter: blur(8px);
+}
+.overlay.hidden { display: none; }
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+@media (max-width: 900px) {
+  .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.meta-item {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ebf6ff 0%, #dceeff 100%);
+  border: 1px solid rgba(191, 219, 254, 0.9);
+}
+.meta-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.meta-value {
+  font-size: 18px;
+  font-weight: 700;
+  word-break: break-word;
+}
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #eaf5ff 0%, #dcedff 100%);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+.table th,
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  text-align: left;
+  font-size: 14px;
+  vertical-align: middle;
+}
+.table th {
+  color: var(--muted);
+  font-weight: 600;
+  background: rgba(248, 250, 252, 0.9);
+}
+.table tr:hover td {
+  background: rgba(239, 246, 255, 0.78);
+}
+.table tr.active td {
+  background: rgba(219, 234, 254, 0.88);
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.10);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+.preview-thumb {
+  width: 72px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #edf4ff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+}
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+.empty-tip {
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+.status-text {
+  color: var(--muted);
+  font-size: 13px;
+}
+.thermal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .thermal-grid { grid-template-columns: 1fr; }
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 24px;
+}
+.modal.show { display: flex; }
+.modal-card {
+  width: min(980px, 100%);
+  background: rgba(255,255,255,0.96);
+  border-radius: 28px;
+  padding: 18px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.modal-image {
+  width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: 20px;
+  background: #eef4ff;
+}
+.close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text);
+  font-size: 18px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← 返回首页</a>
+  </div>
+
+  <div class="safety-banner">
+    <div class="safety-marquee">
+      <div class="safety-track">
+        <div class="safety-slogan">人人讲安全，个个会应急    </div>
+        <div class="safety-slogan">防灾减灾，从排查开始    </div>
+        <div class="safety-slogan">我的安全我负责，部门安全我有责，企业安全我尽责    </div>
+        <div class="safety-slogan">生产再忙，安全不忘    </div>
+      </div>
+      <div class="safety-track" aria-hidden="true">
+        <div class="safety-slogan">人人讲安全，个个会应急    </div>
+        <div class="safety-slogan">防灾减灾，从排查开始    </div>
+        <div class="safety-slogan">我的安全我负责，部门安全我有责，企业安全我尽责    </div>
+        <div class="safety-slogan">生产再忙，安全不忘    </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hero">
+    <div class="section-head">
+      <div>
+        <h1>安全帽识别监控</h1>
+      </div>
+      <div class="actions">
+        <button class="primary" onclick="reloadAll()">刷新</button>
+      </div>
+    </div>
+
+    <div class="monitor-layout">
+      <div class="viewer-card">
+        <div class="section-head" style="margin-bottom: 12px;">
+          <h2>实时识别画面</h2>
+        </div>
+        <div class="viewer-wrap">
+          <img id="viewer" alt="YOLO 识别结果" />
+        </div>
+      </div>
+
+      <div class="panel-soft">
+        <div class="section-head" style="margin-bottom: 12px;">
+          <h2>最新异常</h2>
+          <div class="actions">
+            <button class="secondary" onclick="refreshEventCenter()">刷新记录</button>
+          </div>
+        </div>
+
+        <div class="image-wrap" style="min-height: 320px;">
+          <img id="captureViewer" alt="抓拍详情图" style="min-height: 320px;" />
+          <div id="captureOverlay" class="overlay">
+            <div>
+              <h3 style="margin-bottom:8px;">暂无异常图片</h3>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <div class="meta-item">
+            <div class="meta-label">状态</div>
+            <div class="meta-value" id="captureStatus">等待中</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">告警时间</div>
+            <div class="meta-value" id="captureTime">--</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">事件 ID</div>
+            <div class="meta-value" id="captureEventId">--</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">异常状态</div>
+            <div class="meta-value" id="captureLabels">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <h2>异常情况中心</h2>
+
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="refreshEventCenter()">刷新列表</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width: 220px;">告警时间</th>
+            <th style="width: 140px;">异常状态</th>
+            <th style="width: 120px;">预览图</th>
+            <th style="width: 150px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="eventTableBody">
+          <tr>
+            <td colspan="4" class="empty-tip">暂无异常事件</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <h2>温度监控</h2>
+
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="refreshMonitor()">刷新温度</button>
+        <button class="secondary" onclick="refreshHotspot()">刷新热点图</button>
+      </div>
+    </div>
+
+    <div class="monitor-layout">
+      <div class="viewer-card">
+        <h3 style="margin-bottom: 12px;">最新温度状态</h3>
+        <div class="thermal-grid">
+          <div class="meta-item"><div class="meta-label">状态</div><div class="meta-value" id="metaStatus">等待中</div></div>
+          <div class="meta-item"><div class="meta-label">更新时间</div><div class="meta-value" id="metaUpdatedAt">--</div></div>
+          <div class="meta-item"><div class="meta-label">最高温</div><div class="meta-value" id="metaTmax">--</div></div>
+          <div class="meta-item"><div class="meta-label">最低温</div><div class="meta-value" id="metaTmin">--</div></div>
+          <div class="meta-item"><div class="meta-label">平均温</div><div class="meta-value" id="metaTavg">--</div></div>
+          <div class="meta-item"><div class="meta-label">热点 X</div><div class="meta-value" id="metaHotX">--</div></div>
+          <div class="meta-item"><div class="meta-label">热点 Y</div><div class="meta-value" id="metaHotY">--</div></div>
+          <div class="meta-item"><div class="meta-label">热点宽</div><div class="meta-value" id="metaHotW">--</div></div>
+          <div class="meta-item"><div class="meta-label">热点高</div><div class="meta-value" id="metaHotH">--</div></div>
+          <div class="meta-item"><div class="meta-label">设备</div><div class="meta-value" id="metaDevice">--</div></div>
+          <div class="meta-item"><div class="meta-label">传感器</div><div class="meta-value" id="metaSensor">--</div></div>
+          <div class="meta-item"><div class="meta-label">触发来源</div><div class="meta-value" id="metaTrigger">--</div></div>
+        </div>
+      </div>
+
+      <div class="viewer-card">
+        <h3 style="margin-bottom: 12px;">热点标注图</h3>
+        <div class="image-wrap">
+          <img id="hotspotViewer" alt="热点标注图" />
+          <div id="hotspotOverlay" class="overlay">
+            <div>
+              <h3 style="margin-bottom:8px;">等待热点图</h3>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="imageModal" class="modal" onclick="closeImageModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <h3 id="modalTitle">异常预览</h3>
+      </div>
+      <button class="close-btn" onclick="closeImageModal()">×</button>
+    </div>
+    <img id="modalImage" class="modal-image" alt="异常预览大图" />
+  </div>
+</div>
+
+<script>
+const STREAM_URL = 'http://101.132.116.112:8081/stream';
+const LOCAL_EVENT_URL = 'http://101.132.116.112:8081/latest_event';
+const API_BASE = 'http://www.psylovecl.com/helmet_saver/api';
+const SERVER_ORIGIN = 'http://www.psylovecl.com';
+const LIST_UPLOADS_URL = API_BASE + '/list_uploads.php?limit=50';
+const DELETE_UPLOAD_URL = API_BASE + '/delete_upload.php';
+const DELETE_LOCAL_EVENT_URL = '/delete_local_event.php';
+
+const viewer = document.getElementById('viewer');
+const captureViewer = document.getElementById('captureViewer');
+const captureOverlay = document.getElementById('captureOverlay');
+const captureStatus = document.getElementById('captureStatus');
+const captureTime = document.getElementById('captureTime');
+const captureEventId = document.getElementById('captureEventId');
+const captureLabels = document.getElementById('captureLabels');
+const eventTableBody = document.getElementById('eventTableBody');
+const hotspotViewer = document.getElementById('hotspotViewer');
+const hotspotOverlay = document.getElementById('hotspotOverlay');
+const modal = document.getElementById('imageModal');
+const modalImage = document.getElementById('modalImage');
+const modalTitle = document.getElementById('modalTitle');
+
+const metaStatus = document.getElementById('metaStatus');
+const metaUpdatedAt = document.getElementById('metaUpdatedAt');
+const metaTmax = document.getElementById('metaTmax');
+const metaTmin = document.getElementById('metaTmin');
+const metaTavg = document.getElementById('metaTavg');
+const metaHotX = document.getElementById('metaHotX');
+const metaHotY = document.getElementById('metaHotY');
+const metaHotW = document.getElementById('metaHotW');
+const metaHotH = document.getElementById('metaHotH');
+const metaDevice = document.getElementById('metaDevice');
+const metaSensor = document.getElementById('metaSensor');
+const metaTrigger = document.getElementById('metaTrigger');
+
+const MONITOR_META_URL = '/latest_thermal.json';
+const HOTSPOT_IMAGE_URL = '/latest_hotspot.jpg';
+const HOTSPOT_META_URL = '/latest_hotspot.json';
+const LOCAL_EVENTS_API = '/local_events.php';
+
+let lastHotspotGeneratedAt = '';
+let eventItems = [];
+let selectedEventId = null;
+
+function normalizeLabels(labelsJson, eventType) {
+  const mapLabel = (label) => {
+    const text = String(label || '').trim();
+    if (!text) return '';
+    const lowered = text.toLowerCase();
+    if (lowered === 'no-helmet' || lowered === 'no_helmet') return '无安全帽';
+    if (lowered === 'thermal_overheat' || text === '温度异常') return '高温警告';
+    return text;
+  };
+
+  if (Array.isArray(labelsJson)) return labelsJson.map(mapLabel).filter(Boolean);
+  if (typeof labelsJson === 'string' && labelsJson.trim()) {
+    try {
+      const parsed = JSON.parse(labelsJson);
+      if (Array.isArray(parsed)) return parsed.map(mapLabel).filter(Boolean);
+    } catch (e) {}
+    return [mapLabel(labelsJson)].filter(Boolean);
+  }
+  if (eventType) {
+    return [mapLabel(eventType)].filter(Boolean);
+  }
+  return ['无安全帽'];
+}
+
+function normalizeEventItem(item) {
+  if (!item) return null;
+  return {
+    event_id: item.id ?? item.event_id ?? item.filename ?? '--',
+    filename: item.filename || '',
+    captured_at: item.captured_at || '--',
+    event_type: item.event_type || 'no_helmet',
+    labels: normalizeLabels(item.labels_json || item.labels, item.event_type),
+    image_url: item.image_url || '',
+    image_path: item.image_path || ''
+  };
+}
+
+function eventTypeText(item) {
+  const labels = item.labels || [];
+  if (labels.length) return labels.join(', ');
+  if (item && item.event_type === 'thermal_overheat') return '高温警告';
+  return '无安全帽';
+}
+
+function eventImageUrl(item) {
+  if (!item || !item.image_url) return '';
+  return item.image_url.startsWith('http') ? item.image_url : SERVER_ORIGIN + item.image_url;
+}
+
+function setStream() {
+  viewer.src = STREAM_URL + '?t=' + Date.now();
+}
+
+function setCaptureWaiting() {
+  captureStatus.textContent = '等待中';
+  captureTime.textContent = '--';
+  captureEventId.textContent = '--';
+  captureLabels.textContent = '--';
+  captureViewer.removeAttribute('src');
+  captureOverlay.classList.remove('hidden');
+}
+
+function applyEventToPreview(item) {
+  if (!item) {
+    setCaptureWaiting();
+    return;
+  }
+  selectedEventId = item.event_id;
+  captureStatus.textContent = '已告警';
+  captureTime.textContent = item.captured_at || '--';
+  captureEventId.textContent = String(item.event_id || '--');
+  captureLabels.textContent = eventTypeText(item);
+
+  const imageUrl = eventImageUrl(item);
+  if (imageUrl) {
+    if (captureViewer.dataset.currentSrc !== imageUrl) {
+      captureViewer.src = imageUrl;
+      captureViewer.dataset.currentSrc = imageUrl;
+    }
+    captureOverlay.classList.add('hidden');
+  } else {
+    delete captureViewer.dataset.currentSrc;
+    captureViewer.removeAttribute('src');
+    captureOverlay.classList.remove('hidden');
+  }
+  renderEventTable();
+}
+
+function renderEventTable() {
+  if (!eventItems.length) {
+    eventTableBody.innerHTML = '<tr><td colspan="4" class="empty-tip">暂无异常事件</td></tr>';
+    return;
+  }
+
+  eventTableBody.innerHTML = eventItems.map(item => {
+    const imageUrl = eventImageUrl(item);
+    const activeClass = String(item.event_id) === String(selectedEventId) ? 'active' : '';
+    return `
+      <tr class="${activeClass}">
+        <td>${item.captured_at || '--'}</td>
+        <td><span class="status-pill">${eventTypeText(item)}</span></td>
+        <td>
+          ${imageUrl ? `<img class="preview-thumb" src="${imageUrl}" alt="预览图" onclick="previewEvent('${String(item.event_id).replace(/'/g, "\\'")}')" />` : '--'}
+        </td>
+        <td>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="secondary" onclick="previewEvent('${String(item.event_id).replace(/'/g, "\\'")}')">查看</button>
+            <button class="danger" onclick="deleteEvent('${String(item.event_id).replace(/'/g, "\\'")}')">删除</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function previewEvent(eventId) {
+  const item = eventItems.find(x => String(x.event_id) === String(eventId));
+  if (!item) return;
+  applyEventToPreview(item);
+  const imageUrl = eventImageUrl(item);
+  if (!imageUrl) return;
+  modalTitle.textContent = `异常预览 · 事件 ${item.event_id}`;
+  modalImage.src = imageUrl;
+  modal.classList.add('show');
+}
+
+function closeImageModal(event) {
+  if (event && event.target !== modal) return;
+  modal.classList.remove('show');
+}
+
+async function deleteEvent(eventId) {
+  const item = eventItems.find(x => String(x.event_id) === String(eventId));
+  if (!item) {
+    alert('删除失败：找不到事件');
+    return;
+  }
+
+  const displayName = item.filename || item.event_id;
+  const ok = confirm(`确认删除事件 ${displayName} 吗？`);
+  if (!ok) return;
+
+  try {
+    let res;
+    if (item.filename) {
+      res = await fetch(DELETE_UPLOAD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: item.filename })
+      });
+    } else {
+      res = await fetch(DELETE_LOCAL_EVENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_id: item.event_id })
+      });
+    }
+
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.message || ('HTTP ' + res.status));
+    }
+
+    eventItems = eventItems.filter(x => String(x.event_id) !== String(eventId));
+    if (String(selectedEventId) === String(eventId)) {
+      selectedEventId = null;
+      applyEventToPreview(eventItems[0] || null);
+    } else {
+      renderEventTable();
+    }
+    setTimeout(refreshEventCenter, 300);
+  } catch (err) {
+    alert('删除失败：' + err.message);
+  }
+}
+
+async function refreshEventCenter() {
+  try {
+    const [uploadsRes, localRes, localEventsRes] = await Promise.all([
+      fetch(LIST_UPLOADS_URL + '&t=' + Date.now(), { cache: 'no-store' }).catch(() => null),
+      fetch(LOCAL_EVENT_URL + '?t=' + Date.now(), { cache: 'no-store' }).catch(() => null),
+      fetch(LOCAL_EVENTS_API + '?t=' + Date.now(), { cache: 'no-store' }).catch(() => null)
+    ]);
+
+    let uploadItems = [];
+    if (uploadsRes && uploadsRes.ok) {
+      const uploadsData = await uploadsRes.json();
+      uploadItems = (uploadsData.items || []).map(normalizeEventItem).filter(Boolean);
+    }
+
+    let localItems = [];
+    if (localEventsRes && localEventsRes.ok) {
+      const localEventsData = await localEventsRes.json();
+      localItems = (localEventsData.items || []).map(normalizeEventItem).filter(Boolean);
+    }
+
+    eventItems = uploadItems.concat(localItems).sort((a, b) => {
+      return String(b.captured_at || '').localeCompare(String(a.captured_at || ''));
+    });
+    renderEventTable();
+
+    let target = null;
+    if (selectedEventId) {
+      target = eventItems.find(x => String(x.event_id) === String(selectedEventId));
+    }
+    if (!target && eventItems.length) {
+      target = eventItems[0];
+    }
+
+    if (localRes && localRes.ok) {
+      const localData = await localRes.json();
+      if (localData && localData.ok) {
+        // 本地事件源在线即可，无需额外 badge 展示
+      }
+    }
+
+    if (!eventItems.length && !target) {
+      setCaptureWaiting();
+      return;
+    }
+
+    applyEventToPreview(target);
+  } catch (err) {
+    eventItems = [];
+    renderEventTable();
+    setCaptureWaiting();
+  }
+}
+
+function reloadAll() {
+  setStream();
+  refreshEventCenter();
+  refreshMonitor();
+  refreshHotspot();
+}
+
+function setMonitorWaiting() {
+  metaStatus.textContent = '等待中';
+  metaUpdatedAt.textContent = '--';
+  metaTmax.textContent = '--';
+  metaTmin.textContent = '--';
+  metaTavg.textContent = '--';
+  metaHotX.textContent = '--';
+  metaHotY.textContent = '--';
+  metaHotW.textContent = '--';
+  metaHotH.textContent = '--';
+  metaDevice.textContent = '--';
+  metaSensor.textContent = '--';
+  metaTrigger.textContent = '--';
+}
+
+function setMonitorOnline(meta) {
+  metaStatus.textContent = '已收到';
+  metaUpdatedAt.textContent = meta.server_received_at || meta.updated_at || '--';
+  metaTmax.textContent = meta.t_max != null ? `${meta.t_max} °C` : '--';
+  metaTmin.textContent = meta.t_min != null ? `${meta.t_min} °C` : '--';
+  metaTavg.textContent = meta.t_avg != null ? `${meta.t_avg} °C` : '--';
+  metaHotX.textContent = meta.hot_x != null ? String(meta.hot_x) : '--';
+  metaHotY.textContent = meta.hot_y != null ? String(meta.hot_y) : '--';
+  metaHotW.textContent = meta.hot_w != null ? String(meta.hot_w) : '--';
+  metaHotH.textContent = meta.hot_h != null ? String(meta.hot_h) : '--';
+  metaDevice.textContent = meta.device || '--';
+  metaSensor.textContent = meta.sensor || '--';
+  metaTrigger.textContent = meta.trigger || '--';
+}
+
+function setHotspotWaiting() {
+  hotspotOverlay.classList.remove('hidden');
+}
+
+function setHotspotOnline() {
+  hotspotOverlay.classList.add('hidden');
+}
+
+async function refreshMonitor() {
+  try {
+    const res = await fetch(MONITOR_META_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const meta = await res.json();
+    if (!meta || !meta.ok) throw new Error('invalid meta');
+    setMonitorOnline(meta);
+  } catch (err) {
+    setMonitorWaiting();
+  }
+}
+
+async function refreshHotspot() {
+  try {
+    const metaRes = await fetch(HOTSPOT_META_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!metaRes.ok) throw new Error('meta http ' + metaRes.status);
+    const meta = await metaRes.json();
+    if (!meta || !meta.ok) throw new Error('invalid hotspot meta');
+    setHotspotOnline();
+    const generatedAt = meta.server_generated_at || '';
+    if (generatedAt !== lastHotspotGeneratedAt || !hotspotViewer.src) {
+      lastHotspotGeneratedAt = generatedAt;
+      hotspotViewer.src = HOTSPOT_IMAGE_URL + '?t=' + Date.now();
+    }
+  } catch (err) {
+    setHotspotWaiting();
+  }
+}
+
+reloadAll();
+setInterval(refreshEventCenter, 3000);
+setInterval(refreshMonitor, 3000);
+setInterval(refreshHotspot, 3000);
+</script>
+</body>
+</html>

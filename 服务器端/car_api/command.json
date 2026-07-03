@@ -1,0 +1,16 @@
+{
+    "device_id": "smartcar-p4-01",
+    "token": "smartcar_p4_cloud_001",
+    "has_command": true,
+    "command_id": 105,
+    "command": "stop",
+    "plan": {
+        "A": false,
+        "B": false,
+        "C": true,
+        "D": false
+    },
+    "issued_at": "2026-06-29 18:58:47",
+    "acked_at": "",
+    "consumed": 0
+}
